@@ -1,76 +1,112 @@
 # IS373 Practical Test
 
-## Website URLs
-
-**Production:** https://fwang-is373.lol
-
-**QA:** https://qa.fwang-is373.lol
-
 ## Project Overview
 
-This project deploys a containerized Nginx website to a DigitalOcean Ubuntu server using Docker, Traefik, GitHub Actions, and GitHub Container Registry.
+This project demonstrates automated website deployment using Docker, GitHub Actions, GitHub Container Registry (GHCR), Traefik, and a DigitalOcean Ubuntu server.
 
-Both environments use HTTPS certificates provided by Let's Encrypt.
+The project includes separate QA and production environments, automated CI/CD, HTTPS certificates, and SSH security hardening.
 
-## CI/CD Process
+## Live Websites
 
-GitHub Actions automatically validates, builds, publishes, and deploys the website whenever changes are pushed.
+- **Production:** https://fwang-is373.lol
+- **QA:** https://qa.fwang-is373.lol
 
-1. Changes pushed to the `qa` branch deploy to the QA environment.
-2. Changes pushed to `main` deploy to production.
-3. The workflow validates the website and Docker Compose configuration before building.
-4. Docker images are built and pushed to GitHub Container Registry.
-5. The server downloads the appropriate image and restarts the corresponding container.
-6. Failed validation or build steps prevent deployment.
+Both websites use HTTPS certificates issued by Let's Encrypt.
 
-GitHub Actions repository secrets securely store the SSH deployment credentials and server information.
+## CI/CD Pipeline
+
+The GitHub Actions workflow automatically performs the following steps whenever code is pushed to the `qa` or `main` branch:
+
+1. Checks out the repository.
+2. Validates the website and Docker Compose configuration.
+3. Builds a Docker image.
+4. Pushes the image to GitHub Container Registry.
+5. Connects to the DigitalOcean server using SSH credentials stored in GitHub Actions secrets.
+6. Pulls the updated image and redeploys the corresponding Docker container.
+
+Failed validation or image builds prevent deployment.
+
+Changes pushed to `qa` deploy to the QA website. Changes pushed to `main` deploy to production.
 
 ## Test Evidence
 
-**Successful QA workflow:**
+### Successful GitHub Actions Runs
+
+**QA deployment (Run #3):**
 
 https://github.com/FangzeW1/is373-practical-test/actions/runs/37819665336
 
-**Successful production workflow:**
+**Production deployment (Run #4):**
 
 https://github.com/FangzeW1/is373-practical-test/actions/runs/37819784619
 
-**Docker image registry:**
+### Docker Image Registry
 
 https://github.com/FangzeW1/is373-practical-test/pkgs/container/is373-practical-test
 
-**Deployed commit:** `f67983e`
-
-**Docker image tags:**
+**Docker images:**
 - `ghcr.io/fangzew1/is373-practical-test:qa`
 - `ghcr.io/fangzew1/is373-practical-test:main`
 
-## Server Security
-
-The DigitalOcean server uses a non-root user named `fwang` with SSH key authentication and sudo access.
-
-Security measures include:
-
-- Root SSH login disabled.
-- Password SSH authentication disabled.
-- UFW firewall allowing SSH, HTTP, and HTTPS.
-- Fail2ban enabled.
-- Automatic security updates enabled.
-- Docker application containers configured with reduced privileges.
+**Deployed commit:** `f67983e`
 
 ## QA to Production Promotion
 
-A visible website change was deployed through the `qa` branch first.
+A visible website change was deployed to the QA environment first, changing the website to Version 2.
 
-The QA workflow completed successfully, and the change appeared on the QA website. The same change was then promoted to `main`, triggering a successful production deployment.
+The QA workflow (Run #3) completed successfully before the production workflow (Run #4).
 
-Both websites now display Version 2.
+The change was then promoted to the `main` branch and automatically deployed to production.
 
-## Screenshots
+Both environments now display Version 2.
 
-Add screenshots here showing:
+## Server Security
 
-- QA website with Version 2.
-- Production website with Version 2.
-- Successful GitHub Actions workflows.
-- SSH security configuration and verification.
+The DigitalOcean server runs Ubuntu and uses a non-root administrator account named `fwang`.
+
+Security measures include:
+
+- SSH public key authentication.
+- Root SSH login disabled.
+- Password SSH authentication disabled.
+- UFW firewall configured for SSH, HTTP, and HTTPS.
+- Fail2ban enabled for SSH protection.
+- Automatic security updates enabled.
+- Docker containers configured with reduced privileges.
+- HTTPS provided by Traefik and Let's Encrypt.
+
+The SSH configuration was verified using `sshd -T`. A root SSH login attempt was also rejected.
+
+## Screenshots and Verification
+
+### QA Website
+
+![QA Website](qa.png)
+
+### Production Website
+
+![Production Website](production.png)
+
+### Successful GitHub Actions Workflows
+
+![GitHub Actions](actions.png)
+
+### SSH Security Configuration
+
+![SSH Security](ssh-security.png)
+
+### Root SSH Login Rejected
+
+![Root Login Denied](root-denied.png)
+
+## Technologies Used
+
+- DigitalOcean
+- Ubuntu Linux
+- Docker and Docker Compose
+- Nginx
+- Traefik
+- Let's Encrypt
+- GitHub Actions
+- GitHub Container Registry
+- Git and GitHub
