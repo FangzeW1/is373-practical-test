@@ -1,0 +1,55 @@
+services:
+  production:
+    image: ghcr.io/fangzew1/is373-practical-test:main
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.production.rule=Host(`fwang-is373.lol`)"
+      - "traefik.http.routers.production.entrypoints=websecure"
+      - "traefik.http.routers.production.tls.certresolver=letsencrypt"
+      - "traefik.http.services.production.loadbalancer.server.port=8080"
+
+  qa:
+    image: ghcr.io/fangzew1/is373-practical-test:qa
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qa.rule=Host(`qa.fwang-is373.lol`)"
+      - "traefik.http.routers.qa.entrypoints=websecure"
+      - "traefik.http.routers.qa.tls.certresolver=letsencrypt"
+      - "traefik.http.services.qa.loadbalancer.server.port=8080"
+
+  traefik:
+    image: traefik:v3.6
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
